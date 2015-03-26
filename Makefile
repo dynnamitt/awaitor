@@ -1,8 +1,18 @@
-include CONFIG.mk
+CC = c99
+CFLAGS = -g -Wall -O3
+LDLIBS = -lfcgi
 
-deps: jsmn 
+# main binary
+awaitor: jsmn/libjsmn.a
 
-jsmn: 
+jsmn/%.a:
+	cd jsmn && $(MAKE)
+
+deps: jsmn
+
+jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
+jsmn: JSMN_COMMIT = 6979f2e
+jsmn:
 	hg clone $(JSMN_REPO) .$@.hg || \
 	( cd .$@.hg; hg update; )
 	( cd .$@.hg; \
@@ -10,6 +20,7 @@ jsmn:
 	hg archive ../$@; )
 
 clean:
+	rm awaitor
 	rm -rf .jsmn.hg
 
 

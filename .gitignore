@@ -1,2 +1,5 @@
 .jsmn.hg
 .jsmn.hg
+awaitor
+*.o
+*.a
