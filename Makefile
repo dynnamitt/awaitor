@@ -5,12 +5,12 @@ LDLIBS = -lfcgi
 # main binary
 awaitor: jsmn/libjsmn.a
 
-jsmn/%.a: jsmn/Makefile
+jsmn/%.a: jsmn
 	cd jsmn && $(MAKE)
 
-jsmn/Makefile: JSMN_REPO = http://bitbucket.org/zserge/jsmn
-jsmn/Makefile: JSMN_COMMIT = 6979f2e
-jsmn/Makefile:
+jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
+jsmn: JSMN_COMMIT = 6979f2e
+jsmn:
 	hg clone $(JSMN_REPO) .$@.hg || \
 	( cd .$@.hg; hg update; )
 	( cd .$@.hg; \
@@ -21,7 +21,3 @@ clean:
 	rm awaitor
 	cd jsmn && $(MAKE) clean
 	rm -rf .jsmn.hg
-
-
-
-
