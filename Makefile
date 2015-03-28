@@ -4,17 +4,18 @@ CPPFLAGS = -Imongoose -Ijsmn
 LDLIBS = -lpthread
 
 # main binary
-awaitor: jsmn/libjsmn.a mongoose.o
+awaitor: jsmn/libjsmn.a mongoose/mongoose.o
+
+clean:
+	cd jsmn && $(MAKE) clean
+	rm -rf awaitor mongoose.o .jsmn.hg
+
+# -----------
+#  DEPS
+# -----------
 
 jsmn/%.a: jsmn
 	cd jsmn && $(MAKE)
-
-mongoose.o: mongoose/mongoose.c
-	cd $(dir $<); \
-	$(CC)
-
-mongoose/%.c :
-	git submodule update
 
 jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
 jsmn: JSMN_COMMIT = 6979f2e
@@ -25,6 +26,6 @@ jsmn:
 	hg up $(JSMN_COMMIT); \
 	hg archive ../$@; )
 
-clean:
-	cd jsmn && $(MAKE) clean
-	rm -rf awaitor mongoose.o .jsmn.hg
+mongoose/%.c :
+	git submodule update
+
