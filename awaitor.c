@@ -15,4 +15,11 @@ void main(void)
   /* Initialization. */
   initialize();
 
+  jsmn_parser parser;
+  jsmn_init(&parser);
+
+  struct mg_server *server;
+
+  return 0;
+
 }
