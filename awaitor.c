@@ -45,7 +45,7 @@ event_handler(struct mg_connection *conn,
 
     mg_printf_data(conn, "%s", "Hello world");
 
-    printf("time to EXEC '%s'.\n",cmd);
+    printf("Exec '%s', URI = %s.\n",cmd ,conn->uri);
     return MG_TRUE;   // Mark as processed
 
   } else {
