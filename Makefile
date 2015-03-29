@@ -1,10 +1,11 @@
 CC = c99
-CFLAGS = -g -Wall -O3 
-CPPFLAGS = -Imongoose -Ijsmn
+CFLAGS = -g -Wall -O3
+CPPFLAGS = -Imongoose -Ijsmn -D_GNU_SOURCE
 LDLIBS = -lpthread
 
-# main binary
-awaitor: jsmn/libjsmn.a mongoose/mongoose.o
+all: awaitor
+
+awaitor: jsmn/libjsmn.a mongoose/mongoose.o dm_str.o
 
 clean:
 	cd jsmn && $(MAKE) clean
@@ -17,7 +18,8 @@ clean:
 jsmn/%.a: jsmn
 	cd jsmn && $(MAKE)
 
-mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_THREADS -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI
+mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI
+#-DMONGOOSE_NO_THREADS
 
 jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
 jsmn: JSMN_COMMIT = 6979f2e
