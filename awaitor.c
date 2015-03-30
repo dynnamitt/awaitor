@@ -10,7 +10,6 @@
 
 // CONFIG
 typedef struct {
-  int argc;
   char **argv;
   char *port_no;
   char *ips_allowed;
@@ -35,21 +34,21 @@ event_handler(struct mg_connection *conn,
     printf("In AUTH %s\n",conn->uri);
     return MG_TRUE;   // Authorize all requests
   } else if (ev == MG_REQUEST && starts_with(conn->uri, "/hello_")) {
-    //
-    char *cmd = strdup("");
 
-    for (int i = 1 ; i < config.argc; i++) {
-      // fixme , check error
-      asprintf( &cmd,"%s %s",cmd, *(config.argv+i) );
+    printf("    ");
+
+    char **cmd = config.argv;
+    while(*cmd){
+      printf("%s ",*cmd);
+      cmd++;
     }
 
-    mg_printf_data(conn, "%s", "Hello world");
+    printf("\n");
 
-    printf("Exec '%s', URI = %s.\n",cmd ,conn->uri);
+    mg_printf_data(conn, "%s", "Hello world");
     return MG_TRUE;   // Mark as processed
 
   } else {
-    // printf("NOOP. ev: %d , uri:%s\n",ev,conn->uri);
     return MG_FALSE;  // Rest of the events are not processed
   }
 }
@@ -64,8 +63,10 @@ main(int argc, char *argv[])
   }
 
   // grab CONFIG from args + env
-  config.argc = argc;
-  config.argv = argv;
+  config.argv = malloc(argc*sizeof(char *));
+  config.argv = &argv[1];
+  config.argv[argc-1] = NULL;
+
   config.port_no = getenv("PORT");
   config.ips_allowed = getenv("IPS_ALLOWED");
 
@@ -78,7 +79,8 @@ main(int argc, char *argv[])
   // init www server
   struct mg_server *server = mg_create_server(NULL, event_handler);
   mg_set_option(server, "listening_port", config.port_no );
-
+  /* mg_set_option(server, "access_log_file", "/dev/stdout"); */
+  
   printf("Awaiting.. (on port %s)\n", config.port_no );
 
   // no-buf-flush. To notify UNIX pipes asap
@@ -88,6 +90,6 @@ main(int argc, char *argv[])
     mg_poll_server(server, 1000);  // Infinite loop, Ctrl-C to stop
   }
   mg_destroy_server(&server);
-
+  puts("quiting");
   return 0;
 }
