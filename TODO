@@ -1,0 +1,4 @@
+pull out all includes into a common headerfile
+use check() from dbh.h
+test fork/exec
+fork/exec and force a logfile as stdout/err
