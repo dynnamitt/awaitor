@@ -1,7 +1,6 @@
 CC = c99
-CFLAGS = -g -Wall -O3
+CFLAGS = -g -Wall -O3 -pthread
 CPPFLAGS = -Imongoose -Ijsmn -D_GNU_SOURCE
-LDLIBS = -lpthread
 
 all: awaitor
 
@@ -18,7 +17,7 @@ clean:
 jsmn/%.a: jsmn
 	cd jsmn && $(MAKE)
 
-mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI
+mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI -DMONGOOSE_ENABLE_THREADS
 #-DMONGOOSE_NO_THREADS
 
 jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
