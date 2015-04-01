@@ -4,7 +4,7 @@ CPPFLAGS = -Imongoose -Ijsmn -D_GNU_SOURCE
 
 all: awaitor
 
-awaitor: jsmn/libjsmn.a mongoose/mongoose.o dm_str.o
+awaitor: jsmn/libjsmn.a mongoose/mongoose.o
 
 clean:
 	cd jsmn && $(MAKE) clean

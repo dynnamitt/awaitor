@@ -1,4 +1,4 @@
-# From Zeds online LCTHW
+//From Zeds online LCTHW
 
 #ifndef __dbg_h__
 #define __dbg_h__

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "dbg.h"
 #include "mongoose.h"
 #include "jsmn.h"
 
@@ -27,12 +28,14 @@ usage(char *arg0)
 
 
 int
-starts_with( const char *str, const char *pre )
+starts_with(const char *restrict string,
+	    const char *restrict prefix)
 {
-    // TODO optimize w while-loop; DONT use strlen
-    size_t lenpre = strlen(pre),
-           lenstr = strlen(str);
-    return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
+    while(*prefix){
+        if(*prefix++ != *string++)
+            return 0;
+    }
+    return 1;
 }
 
 static int
@@ -73,10 +76,9 @@ main(int argc, char *argv[])
   }
 
   // grab CONFIG from args + env
-  config.argv = malloc(argc*sizeof(char *));
+  config.argv = calloc(argc,sizeof(char *));
+  check_mem(config.argv); // may fail
   config.argv = &argv[1];
-  config.argv[argc-1] = NULL;
-
   config.port_no = getenv("PORT");
   config.ips_allowed = getenv("IPS_ALLOWED");
 
@@ -88,10 +90,23 @@ main(int argc, char *argv[])
 
   // init www server
   struct mg_server *server = mg_create_server(NULL, event_handler);
-  mg_set_option(server, "listening_port", config.port_no );
+  check_mem(server);
+  const char *err = mg_set_option(server, "listening_port", config.port_no );
+  check(!err,"Cannot start www server.\n%s",err);
   /* mg_set_option(server, "access_log_file", "/dev/stdout"); */
-  
-  printf("Awaiting.. (on port %s)\n", config.port_no );
+
+  // make a pretty list of OPTIONS
+  puts("www options set:");
+  puts("----------------");
+  const char **opts = mg_get_valid_option_names();
+   for (int i = 0; opts[i] != NULL; i += 2) {
+    printf( "%s = '%s'\n",
+            opts[i],
+	    mg_get_option(server,opts[i]));
+  }
+
+  puts("===========");
+  puts("Awaiting...");
 
   // no-buf-flush. To notify UNIX pipes asap
   setbuf(stdout, NULL);
@@ -99,7 +114,11 @@ main(int argc, char *argv[])
   for (;;) {
     mg_poll_server(server, 1000);  // Infinite loop, Ctrl-C to stop
   }
+
   mg_destroy_server(&server);
-  puts("quiting");
   return 0;
+
+ error:
+  if (server) mg_destroy_server(&server);
+  return -1;
 }
