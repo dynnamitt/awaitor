@@ -29,13 +29,13 @@ usage(char *arg0)
 
 int
 starts_with(const char *restrict string,
-	    const char *restrict prefix)
+            const char *restrict prefix)
 {
-    while(*prefix){
-        if(*prefix++ != *string++)
-            return 0;
-    }
-    return 1;
+  while(*prefix){
+    if(*prefix++ != *string++)
+      return 0;
+  }
+  return 1;
 }
 
 static int
@@ -46,7 +46,8 @@ event_handler(struct mg_connection *conn,
   if (ev == MG_AUTH) {
     printf("In AUTH %s\n",conn->uri);
     return MG_TRUE;   // Authorize all requests
-  } else if (ev == MG_REQUEST && starts_with(conn->uri, "/hello_")) {
+  } else if (ev == MG_REQUEST &&
+             starts_with(conn->uri, "/hello_")) {
 
     printf("    ");
 
@@ -77,12 +78,12 @@ main(int argc, char *argv[])
 
   // grab CONFIG from args + env
   config.argv = calloc(argc,sizeof(char *));
-  check_mem(config.argv); // may fail
+  check_mem(config.argv);
   config.argv = &argv[1];
   config.port_no = getenv("PORT");
   config.ips_allowed = getenv("IPS_ALLOWED");
 
-  // Set default CONF values if missing
+  // Set default `config values if missing
   if (!config.port_no) { config.port_no = "8080"; }
   if (!config.ips_allowed) {
     config.ips_allowed = "127.0.0.1,";
@@ -95,18 +96,8 @@ main(int argc, char *argv[])
   check(!err,"Cannot start www server.\n%s",err);
   /* mg_set_option(server, "access_log_file", "/dev/stdout"); */
 
-  // make a pretty list of OPTIONS
-  puts("www options set:");
-  puts("----------------");
-  const char **opts = mg_get_valid_option_names();
-   for (int i = 0; opts[i] != NULL; i += 2) {
-    printf( "%s = '%s'\n",
-            opts[i],
-	    mg_get_option(server,opts[i]));
-  }
 
-  puts("===========");
-  puts("Awaiting...");
+  printf("Awaiting... on %s\n",config.port_no);
 
   // no-buf-flush. To notify UNIX pipes asap
   setbuf(stdout, NULL);
