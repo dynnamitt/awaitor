@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <unistd.h>
+#include <libgen.h>
 #include <stdbool.h>
 
 #include "dbg.h"
@@ -12,11 +13,13 @@
 /// globals
 #define SERVER_ERROR 500
 #define DEF_PORT "8080"
+#define DEF_LOG_DIR_PREFIX "/var/log/"
 #define POLL_TIMEOUT 1000
 #define OPT_ACL "access_control_list"
 #define OPT_PORT "listening_port"
 
 char **ext_cmd;
+char *log_dir;
 
 /// usage msg on error
 static void
@@ -45,14 +48,14 @@ exec(void)
 {
 
   pid_t pid = fork();
-  log_info("the PID is %d",pid);
   check(pid>=0,"Fork failed!");
 
   if( pid == 0){
     // child
     pid_t c_pid = getpid();
+    // TODO make a empty file in LOG_DIR or die if no access
     log_info("New child w PID %d",c_pid);
-    exit(0);
+    execv(ext_cmd[0],ext_cmd);
   }
 
   // parent
@@ -110,6 +113,15 @@ main(int argc, char *argv[])
 
   char *acl = getenv("ACL");
   if (!acl) acl = "";
+
+  log_dir = getenv("LOG_DIR");
+  if (!log_dir) {
+    char *app_name = basename(argv[0]);
+    check_mem(asprintf(&log_dir, "%s%s/",
+		       DEF_LOG_DIR_PREFIX, app_name));
+  }
+
+  log_info("logdir --> '%s'" , log_dir );
 
   // init www server
   struct mg_server *server = mg_create_server(NULL, event_handler);
