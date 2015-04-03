@@ -4,3 +4,4 @@ awaitor
 *.o
 *.a
 **/*.o
+TAGS

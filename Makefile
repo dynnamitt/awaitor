@@ -10,6 +10,9 @@ clean:
 	cd jsmn && $(MAKE) clean
 	rm -rf awaitor mongoose/mongoose.o .jsmn.hg
 
+TAGS:
+	ctags -eR --options=$< .
+
 # -----------
 #  DEPS
 # -----------
