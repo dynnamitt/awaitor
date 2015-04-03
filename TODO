@@ -1,3 +1,5 @@
-use check() from dbh.h
 test fork/exec
+fix TAGS target , need to excluse lots of test/sample dirs
 fork/exec and force a logfile as stdout/err
+json -> char**
+

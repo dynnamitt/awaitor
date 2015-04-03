@@ -12,6 +12,7 @@
 /// globals
 #define SERVER_ERROR 500
 #define DEF_PORT "8080"
+#define POLL_TIMEOUT 1000
 #define OPT_ACL "access_control_list"
 #define OPT_PORT "listening_port"
 
@@ -42,17 +43,25 @@ starts_with(const char *string,
 static bool
 exec(void)
 {
-     printf("    ");
 
-    char **cmd = ext_cmd;
-    while(*cmd){
-      printf("%s ",*cmd);
-      cmd++;
-    }
+  pid_t pid = fork();
+  log_info("the PID is %d",pid);
+  check(pid>=0,"Fork failed!");
 
-    printf("\n");
+  if( pid == 0){
+    // child
+    pid_t c_pid = getpid();
+    log_info("New child w PID %d",c_pid);
+    exit(0);
+  }
 
-    return true;
+  // parent
+  // append pid to a global cnt var maybe
+
+  return true;
+
+ error:
+  return false;
 }
 
 /// the mongoose EV handler, THE SERVER basically.
@@ -62,7 +71,7 @@ event_handler(struct mg_connection *conn,
 {
 
   if (ev == MG_AUTH) {
-    printf("In AUTH %s\n",conn->uri);
+    log_info("In AUTH %s\n",conn->uri);
     return MG_TRUE;   // Authorize all requests
   } else if (ev == MG_REQUEST &&
              starts_with(conn->uri, "/hello_")) {
@@ -86,6 +95,7 @@ int
 main(int argc, char *argv[])
 {
 
+  // check input args on start
   if (argc==1){
     usage(argv[0]);
     return 1;
@@ -109,13 +119,14 @@ main(int argc, char *argv[])
   const char *acl_err = mg_set_option(server, OPT_ACL, acl);
   check(!acl_err,"Cannot init ACL. %s",acl_err);
 
-  printf("Awaiting... on %s\n",port_no);
+  printf("Awaiting... on %s\n", port_no);
 
   // no-buf n flush. To notify UNIX pipes asap
   // setbuf(stdout, NULL);
 
   for (;;) {
-    mg_poll_server(server, 1000);  // Infinite loop, Ctrl-C to stop
+    mg_poll_server(server, POLL_TIMEOUT);
+    // Infinite loop, Ctrl-C to stop
   }
 
   mg_destroy_server(&server);
