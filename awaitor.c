@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <libgen.h>
+#include <wait.h>
 #include <stdbool.h>
 
 #include "dbg.h"
@@ -32,8 +33,8 @@ usage(char *arg0)
 
 /// Checking if string in arg0 starts w prefix, arg1.
 static bool
-starts_with(const char *string,
-            const char *prefix)
+starts_with(const char * restrict string,
+            const char * restrict prefix)
 {
   while(*prefix){
     if(*prefix++ != *string++)
@@ -42,25 +43,29 @@ starts_with(const char *string,
   return true;
 }
 
-/// exec-and-fork.
+/// fork twice (avoiding zombie).
 static bool
-exec(void)
+forkforkexec(char **argv)
 {
 
-  pid_t pid = fork();
-  check(pid>=0,"Fork failed!");
+  pid_t pid1 = fork();
+  check(pid1 >= 0,"Fork failed!");
 
-  if( pid == 0){
-    // child
-    pid_t c_pid = getpid();
-    // TODO make a empty file in LOG_DIR or die if no access
-    log_info("New child w PID %d",c_pid);
-    execv(ext_cmd[0],ext_cmd);
+  if( pid1 == 0){
+    // child1
+    pid_t pid2 = fork();
+    if (pid2 < 0 ) exit(EXIT_FAILURE);
+    if( pid2 == 0 ){
+      // child2
+      execvp(argv[0],argv);
+      exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
   }
 
   // parent
-  // append pid to a global cnt var maybe
-
+  // wait for 1st child
+  wait(NULL);
   return true;
 
  error:
@@ -79,7 +84,7 @@ event_handler(struct mg_connection *conn,
   } else if (ev == MG_REQUEST &&
              starts_with(conn->uri, "/hello_")) {
 
-    bool s_code = exec();
+    bool s_code = forkforkexec(ext_cmd);
 
     if(s_code){
       mg_printf_data(conn, "%s", "'OK'");
@@ -118,7 +123,7 @@ main(int argc, char *argv[])
   if (!log_dir) {
     char *app_name = basename(argv[0]);
     check_mem(asprintf(&log_dir, "%s%s/",
-		       DEF_LOG_DIR_PREFIX, app_name));
+                       DEF_LOG_DIR_PREFIX, app_name));
   }
 
   log_info("logdir --> '%s'" , log_dir );
