@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <unistd.h>
 #include <libgen.h>
@@ -57,6 +58,16 @@ forkforkexec(char **argv)
     if (pid2 < 0 ) exit(EXIT_FAILURE);
     if( pid2 == 0 ){
       // child2
+      // redir-to-logfile
+      char *logfile = NULL;
+      int res = asprintf(&logfile,"%s/%d.%d",log_dir,getpid(),(int)time(NULL));
+      if( res != -1) {
+	//success
+	log_info("logfile %s",logfile);
+      } else {
+	log_err("Vi bruker kun STDOUT!!");
+      }
+      
       execvp(argv[0],argv);
       exit(EXIT_FAILURE);
     }
@@ -122,8 +133,12 @@ main(int argc, char *argv[])
   log_dir = getenv("LOG_DIR");
   if (!log_dir) {
     char *app_name = basename(argv[0]);
-    check_mem(asprintf(&log_dir, "%s%s/",
-                       DEF_LOG_DIR_PREFIX, app_name));
+    int res = asprintf(&log_dir, "%s%s",
+		       DEF_LOG_DIR_PREFIX, app_name);
+    check(res != -1,"asprintf() fail");
+  } else if ( log_dir[strlen(log_dir)-1] == '/' ){
+    // cannor have endchar == '/'
+    log_dir[strlen(log_dir)-1] = '\0';
   }
 
   log_info("logdir --> '%s'" , log_dir );
@@ -132,8 +147,10 @@ main(int argc, char *argv[])
   struct mg_server *server = mg_create_server(NULL, event_handler);
   check_mem(server);
   const char *pn_err = mg_set_option(server, OPT_PORT, port_no );
+  // TODO check API
   check(!pn_err,"Cannot start www server.\n%s",pn_err);
   const char *acl_err = mg_set_option(server, OPT_ACL, acl);
+  // TODO check API
   check(!acl_err,"Cannot init ACL. %s",acl_err);
 
   printf("Awaiting... on %s\n", port_no);
