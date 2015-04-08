@@ -31,6 +31,9 @@ jsmn:
 	hg up $(JSMN_COMMIT); \
 	hg archive ../$@; )
 
+mongoose/%.o : mongoose/%.c
+
 mongoose/%.c :
+	git submodule init
 	git submodule update
 
