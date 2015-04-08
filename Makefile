@@ -8,10 +8,12 @@ awaitor: jsmn/libjsmn.a mongoose/mongoose.o
 
 clean:
 	cd jsmn && $(MAKE) clean
-	rm -rf awaitor mongoose/mongoose.o .jsmn.hg
+	rm -rf awaitor mongoose/mongoose.o .jsmn.hg TAGS
 
 TAGS:
-	ctags -eR --options=$< .
+	ctags -eR \
+	--exclude=.git \
+	--exclude=example* .
 
 # -----------
 #  DEPS
@@ -19,8 +21,6 @@ TAGS:
 
 jsmn/%.a: jsmn
 	cd jsmn && $(MAKE)
-
-mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI -DMONGOOSE_NO_THREADS
 
 jsmn: JSMN_REPO = http://bitbucket.org/zserge/jsmn
 jsmn: JSMN_COMMIT = 6979f2e
@@ -31,6 +31,7 @@ jsmn:
 	hg up $(JSMN_COMMIT); \
 	hg archive ../$@; )
 
+mongoose/%.o: CPPFLAGS += -DMONGOOSE_NO_FILESYSTEM -DMONGOOSE_NO_CGI -DMONGOOSE_NO_THREADS
 mongoose/%.o : mongoose/%.c
 
 mongoose/%.c :

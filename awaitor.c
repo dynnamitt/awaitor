@@ -67,8 +67,8 @@ forkforkexec(char **argv)
       } else {
 	log_err("Vi bruker kun STDOUT!!");
       }
-      
-      execvp(argv[0],argv);
+
+      execvp(argv[0],argv,env_arr);
       exit(EXIT_FAILURE);
     }
     exit(EXIT_SUCCESS);
@@ -93,7 +93,7 @@ event_handler(struct mg_connection *conn,
     log_info("In AUTH %s\n",conn->uri);
     return MG_TRUE;   // Authorize all requests
   } else if (ev == MG_REQUEST &&
-             starts_with(conn->uri, "/hello_")) {
+             starts_with(conn->uri, "/fork")) {
 
     bool s_code = forkforkexec(ext_cmd);
 
@@ -147,11 +147,9 @@ main(int argc, char *argv[])
   struct mg_server *server = mg_create_server(NULL, event_handler);
   check_mem(server);
   const char *pn_err = mg_set_option(server, OPT_PORT, port_no );
-  // TODO check API
-  check(!pn_err,"Cannot start www server.\n%s",pn_err);
+  check(pn_err==NULL,"Cannot start www server.\n%s",pn_err);
   const char *acl_err = mg_set_option(server, OPT_ACL, acl);
-  // TODO check API
-  check(!acl_err,"Cannot init ACL. %s",acl_err);
+  check(acl_err==NULL,"Cannot init ACL. %s",acl_err);
 
   printf("Awaiting... on %s\n", port_no);
 
