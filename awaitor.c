@@ -68,7 +68,7 @@ forkforkexec(char **argv)
 	log_err("Vi bruker kun STDOUT!!");
       }
 
-      execvp(argv[0],argv,env_arr);
+      execvp(argv[0],argv);
       exit(EXIT_FAILURE);
     }
     exit(EXIT_SUCCESS);
@@ -120,9 +120,14 @@ main(int argc, char *argv[])
     return 1;
   }
 
-  ext_cmd = calloc(argc, sizeof(char *));
-  check_mem(ext_cmd);
-  ext_cmd = &argv[1];
+
+  // shift argv array left w/ NULL
+  char *external_cmd[argc];
+  for (int i=1; i < argc; i++) external_cmd[i-1] = argv[i];
+  external_cmd[argc-1] = NULL; //terminator
+
+  // pass to handler
+  ext_cmd = external_cmd;
 
   char *port_no = getenv("PORT");
   if (!port_no) port_no = DEF_PORT;
@@ -147,9 +152,9 @@ main(int argc, char *argv[])
   struct mg_server *server = mg_create_server(NULL, event_handler);
   check_mem(server);
   const char *pn_err = mg_set_option(server, OPT_PORT, port_no );
-  check(pn_err==NULL,"Cannot start www server.\n%s",pn_err);
+  check(pn_err==NULL, "Cannot start www server.\n%s", pn_err);
   const char *acl_err = mg_set_option(server, OPT_ACL, acl);
-  check(acl_err==NULL,"Cannot init ACL. %s",acl_err);
+  check(acl_err==NULL, "Cannot init ACL. %s", acl_err);
 
   printf("Awaiting... on %s\n", port_no);
 
