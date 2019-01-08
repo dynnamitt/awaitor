@@ -1,6 +1,6 @@
 # awaitor
 
-### C http server daemon. 
+### C http server daemon toying with 2 libs: mongoose and jsmn
 
 Parses JSON and executes a fork (transforming the JSON body into ENV key/values)
 
