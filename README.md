@@ -2,7 +2,7 @@
 
 ### C http server daemon 
 
-### Status: forgot to write excerise script so I bet it dont't work :/
+### Status: {{?}}
 
 Play with 2 libs: mongoose and jsmn
 
